@@ -1,22 +1,36 @@
-# Node Self-Detach
+# Node Forever
 
-This Node script demonstrates a mechanism for starting processes that in effect
-self-detach from the terminal they were started from, so that the terminal can
-be closed without killing the process.
+Node Forever is a library for making a process standalone and single-instance.
+It works by restarting the Node module in a detached process and propagating the
+command line arguments into the standalone process. In addition, it ensures the
+process remains single-instance by killing and replacing the existing instance
+each time a new one is started. Once a Node Forever script has been started, the
+terminal it was started from can be closed without killing the process.
 
-**Please, let me know if there is a better way to do this!** Something like
-`process.detach()` would be nice.
+## Installation
 
-In addition, this script ensures that only a single instance of the detached
-process ever runs at one time. It uses `lsof` to do this, so it will only work
-on macOS or Linux.
+`git submodule add https://github.com/tomashubelbauer/node-forever`
 
-This makes it suitable to use the mechanism for local development of web-based
-applications. The flow I have in mind goes like this:
+## Usage
 
-- Start the process using `node .` and test it in the browser
+See [`test.js`](test.js). Run using `node test`.
+
+```js
+import forever from 'https://github.com/tomashubelbauer/forever/index.js';
+
+void async function() {
+  // Make this process standalone and single-instance and propagate the standard I/O
+  if (await forever()) {
+    return;
+  }
+
+  // Do the standalone single-instance process work here
+}()
+```
+
+- Start the process using `node test` and test it in the browser
 - Kill the terminal / IDE and continue using the web-app without interruption
-- Make changes and execute `node .` to replace the existing instance
+- Make changes and execute `node test` to replace the existing instance
 
 This flow allows for very easy development, where when working on the web app,
 one jumps into the IDE and does the build-compile-test cycle manually. Once
@@ -43,22 +57,11 @@ file is kept around. The flag file is only touched if it was removed and needs
 recreating, it is not written to continuously, so the script does not wear out
 storage drives.
 
-## Usage
+## Support
 
-See [`test.js`](test.js). Run using `node test`.
-
-```js
-import forever from 'https://github.com/tomashubelbauer/forever/index.js';
-
-void async function() {
-  // Make this process standalone and single-instance and propagate the standard I/O
-  if (await forever()) {
-    return;
-  }
-
-  // Do the standalone single-instance process work here
-}()
-```
+Node Forever uses `lsof` to find processes which have the given module file open
+so it will not work on Windows. `handle` from the SysInternals suite could be
+used, but it does not come out of the box with Windows, so I have not bothered.
 
 ## To-Do
 
