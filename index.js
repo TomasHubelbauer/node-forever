@@ -8,7 +8,8 @@ process.on('uncaughtException', error => { throw error; })
 
 // Fork off an agent process and serve as a standard I/O passthrough until exit
 if (process.send === undefined) {
-  child_process.fork(process.argv[1], { detached: true });
+  // Propagage bootstrap process command line arguments to the agent process
+  child_process.fork(process.argv[1], process.argv.slice(2), { detached: true });
 }
 
 // Run as an agent once the bootstrap process has forked the current process off
@@ -62,11 +63,12 @@ else {
     // TODO: Do this in a smarter way - try to bind and wait and retry on failure
     setTimeout(
       () => {
+        const port = process.argv[2] || 1337;
         http
           .createServer((request, response) => {
             response.end(request.url);
           })
-          .listen(1337, () => console.log(process.pid, 'http://localhost:1337'))
+          .listen(port, () => console.log(process.pid, 'http://localhost:' + port))
           ;
       },
       1000

@@ -25,6 +25,9 @@ online, so it can be used (as opposed to developed and tested). Once ready to
 do another session of development, the web app is replaced with each issuance
 of the `node .` command.
 
+Command line arguments to the bootstrap process are transparently propagated to
+the standalone process.
+
 The app only ever goes down if it crashes, which is desired: apps should crash
 fast and loud!
 
@@ -59,13 +62,3 @@ void async function() {
 
 Right now we're using a one-second timeout, which works, but it is probably not
 the best way to do it.
-
-### Add support for passing bootstrap script arguments to the agent process
-
-This will be useful for allowing the port number and other arguments to be put
-in through the CLI. The change to support this will be easy:
-
-```diff
--child_process.fork(process.argv[1], { detached: true });
-+child_process.fork(process.argv[1], process.argv.slice(2), { detached: true });
-```
