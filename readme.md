@@ -39,3 +39,33 @@ The script deletes flag files of processes it replaces, so only current flag
 file is kept around. The flag file is only touched if it was removed and needs
 recreating, it is not written to continuously, so the script does not wear out
 storage drives.
+
+## To-Do
+
+### Make this script usable as a Git submodule and an ESM library with an API
+
+The API could look something like this:
+
+```
+import forever from 'https://github.com/tomashubelbauer/forever/index.js';
+
+void async function() {
+  // Replace existing process and restart self as a new standalone process
+  await forever();
+}()
+```
+
+### Improve detection of the prior process not yet having released the port
+
+Right now we're using a one-second timeout, which works, but it is probably not
+the best way to do it.
+
+### Add support for passing bootstrap script arguments to the agent process
+
+This will be useful for allowing the port number and other arguments to be put
+in through the CLI. The change to support this will be easy:
+
+```diff
+-child_process.fork(process.argv[1], { detached: true });
++child_process.fork(process.argv[1], process.argv.slice(2), { detached: true });
+```
