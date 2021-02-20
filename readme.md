@@ -16,7 +16,7 @@ terminal it was started from can be closed without killing the process.
 See [`test.js`](test.js). Run using `node test`.
 
 ```js
-import forever from 'https://github.com/tomashubelbauer/forever/index.js';
+import forever from './node-forever/index.js';
 
 void async function() {
   // Make this process standalone and single-instance and propagate the standard I/O
