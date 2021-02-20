@@ -1,47 +1,45 @@
 import child_process from 'child_process';
+import util from 'util';
 import fs from 'fs';
-import http from 'http';
 
-// Kill the process on an unhandled promise rejection and unhandled exception
-process.on('unhandledRejection', error => { throw error; });
-process.on('uncaughtException', error => { throw error; })
+export default async function forever(flag = true) {
+  // Fork off an agent process and serve as a standard I/O passthrough until exit
+  if (process.send === undefined) {
+    // Propagage bootstrap process command line arguments to the agent process
+    child_process.fork(process.argv[1], process.argv.slice(2), { detached: true });
+    return true;
+  }
 
-// Fork off an agent process and serve as a standard I/O passthrough until exit
-if (process.send === undefined) {
-  // Propagage bootstrap process command line arguments to the agent process
-  child_process.fork(process.argv[1], process.argv.slice(2), { detached: true });
-}
+  if (flag) {
+    // Recreate the flag file continuously to signal liveness without a terminal
+    setInterval(
+      async () => {
+        const flagFileName = process.pid + '.now';
 
-// Run as an agent once the bootstrap process has forked the current process off
-else {
-  // Recreate the flag file continuously to signal liveness without a terminal
-  setInterval(
-    () => {
-      const flagFileName = process.pid + '.now';
-
-      // Check whether a flag file for this agent process already exists or not
-      fs.access(flagFileName, (error) => {
-        if (error) {
+        // Check whether a flag file for this agent process already exists or not
+        try {
+          await fs.promises.access(flagFileName);
+          // Ignore as the flag file is correctly already existant
+        }
+        catch (error) {
           if (error.code !== 'ENOENT') {
             throw error;
           }
 
           // Create the flag file or bring down the process if not possible
-          fs.writeFile(flagFileName, '', (error) => { if (error) { throw error; } });
+          // TODO: Explorer using `fs.truncate` here instead - any benefit?
+          await fs.promises.writeFile(flagFileName, '');
         }
-      });
-    },
-    1000
-  );
+      },
+      1000
+    );
+  }
 
   // Execute `lsof $PWD` to maybe identify an existing agent to kill and replace
-  child_process.exec(`lsof ${process.cwd()}`, (error, stdout, stderr) => {
-    // Raise the error thrown while attempting to execute `lsof` to kill self
-    if (error) {
-      throw error;
-    }
+  try {
+    const { stdout, stderr } = await util.promisify(child_process.exec)(`lsof ${process.cwd()}`);
 
-    // Treat standard error content as an error, too, since it is not expected
+    // Treat standard error content as an error since it is not expected
     if (stderr) {
       throw new Error(stderr);
     }
@@ -56,22 +54,19 @@ else {
       process.kill(match.groups.pid);
 
       // Delete the flag file for the existing agent process to signal deadness
-      fs.unlink(match.groups.pid + '.now', (error) => { if (error && error.code !== 'ENOENT') { throw error; } });
+      try {
+        await fs.promises.unlink(match.groups.pid + '.now');
+      }
+      catch (error) {
+        // Throw only if the file failed to be deleted, not if it didn't exist
+        if (error.code !== 'ENOENT') {
+          throw error;
+        }
+      }
     }
-
-    // Wait a bit for the existing agent to die before attempting to bind the port
-    // TODO: Do this in a smarter way - try to bind and wait and retry on failure
-    setTimeout(
-      () => {
-        const port = process.argv[2] || 1337;
-        http
-          .createServer((request, response) => {
-            response.end(request.url);
-          })
-          .listen(port, () => console.log(process.pid, 'http://localhost:' + port))
-          ;
-      },
-      1000
-    );
-  });
+  }
+  catch (error) {
+    // Raise the error thrown while attempting to execute `lsof` to kill self
+    throw error;
+  }
 }

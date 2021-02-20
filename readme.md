@@ -43,22 +43,30 @@ file is kept around. The flag file is only touched if it was removed and needs
 recreating, it is not written to continuously, so the script does not wear out
 storage drives.
 
-## To-Do
+## Usage
 
-### Make this script usable as a Git submodule and an ESM library with an API
-
-The API could look something like this:
+See [`test.js`](test.js). Run using `node test`.
 
 ```js
 import forever from 'https://github.com/tomashubelbauer/forever/index.js';
 
 void async function() {
-  // Replace existing process and restart self as a new standalone process
-  await forever();
+  // Make this process standalone and single-instance and propagate the standard I/O
+  if (await forever()) {
+    return;
+  }
+
+  // Do the standalone single-instance process work here
 }()
 ```
+
+## To-Do
 
 ### Improve detection of the prior process not yet having released the port
 
 Right now we're using a one-second timeout, which works, but it is probably not
 the best way to do it.
+
+### Explore whether `truncate` has any benefit over `writeFile` with no content
+
+This is used in the flag file re-creation interval.
