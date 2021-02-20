@@ -46,7 +46,7 @@ storage drives.
 
 The API could look something like this:
 
-```
+```js
 import forever from 'https://github.com/tomashubelbauer/forever/index.js';
 
 void async function() {
