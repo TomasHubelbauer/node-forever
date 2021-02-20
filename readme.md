@@ -1,6 +1,6 @@
 # Node Self-Detach
 
-This Node script demonstrates a mechanism for starting processes that in-effect
+This Node script demonstrates a mechanism for starting processes that in effect
 self-detach from the terminal they were started from, so that the terminal can
 be closed without killing the process.
 
@@ -19,11 +19,11 @@ applications. The flow I have in mind goes like this:
 - Make changes and execute `node .` to replace the existing instance
 
 This flow allows for very easy development, where when working on the web app,
-once jumps into the IDE and does the build-compile-test cycle manually. Once
+one jumps into the IDE and does the build-compile-test cycle manually. Once
 ready to step away from development, the web application remains available and
-online, so it can be used (as opposed to developed and tested). Once again ready
-to jump into the development, the web app is replaced with each issuance of the
-`node .` command.
+online, so it can be used (as opposed to developed and tested). Once ready to
+do another session of development, the web app is replaced with each issuance
+of the `node .` command.
 
 The app only ever goes down if it crashes, which is desired: apps should crash
 fast and loud!
@@ -32,9 +32,10 @@ If you don't feel comfortable/confident that this script will not keep abandoned
 processes around, rest easy. The script creates a `$PID.now` flag file for each
 process so it is obvious at glance if there is a process running or not. The
 flag file gets recreated if it was deleted while the process was running, so its
-presence should be a reliable indicator of a process with that PID running.
+presence should be a reliable indicator of a process with that PID running. It
+can only become stale of the process crashes.
 
-The script deletes flag files or processes it replaces, so only current flag
-files are kept around. The flag file is only touched if it was removed and needs
+The script deletes flag files of processes it replaces, so only current flag
+file is kept around. The flag file is only touched if it was removed and needs
 recreating, it is not written to continuously, so the script does not wear out
 storage drives.
