@@ -65,12 +65,7 @@ used, but it does not come out of the box with Windows, so I have not bothered.
 
 ## Related
 
-I have developed a related project called [node-phoenix], which does not relate
-to preventing the process from dying when the associated terminal is closed, but
-it does self-restart Node processes when their source code changes. The way that
-is done is similar somewhat to this project, so it's good to be aware of both.
-
-[node-phoenix]: https://github.com/TomasHubelbauer/node-phoenix
+[Node Immortal](https://github.com/TomasHubelbauer/node-immortal)
 
 ## To-Do
 
